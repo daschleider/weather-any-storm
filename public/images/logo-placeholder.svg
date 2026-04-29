@@ -1,0 +1,6 @@
+<!-- Replace this file with your actual logo (logo.png or logo.svg) -->
+<!-- Recommended: white or transparent background, PNG or SVG -->
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="44" viewBox="0 0 160 44">
+  <rect width="160" height="44" fill="none" stroke="#444" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="80" y="26" font-family="Helvetica" font-size="9" fill="#666" text-anchor="middle" letter-spacing="3">YOUR LOGO</text>
+</svg>
