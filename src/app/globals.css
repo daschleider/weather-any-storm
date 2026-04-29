@@ -499,7 +499,7 @@ html, body {
 }
 
 .field-input::placeholder {
-  color: var(--gray-700);
+  color: var(--gray-300);
   letter-spacing: 0.15em;
   font-size: 10px;
   text-transform: uppercase;
@@ -910,6 +910,10 @@ html, body {
     justify-content: center;
   }
 
+  /* On mobile show black logo (over white art), hide white */
+  .logo-white { display: none !important; }
+  .logo-black { display: block !important; }
+
   .rsvp-header {
     font-size: clamp(40px, 14vw, 72px);
   }
@@ -1061,4 +1065,24 @@ html, body {
   -webkit-box-shadow: 0 0 0 1000px #2e2e2e inset;
   -webkit-text-fill-color: var(--white);
   caret-color: var(--white);
+}
+
+/* ─── PREVENT iOS AUTO-ZOOM ON INPUT FOCUS ─── */
+@media (max-width: 768px) {
+  .field-input,
+  .email-input,
+  .counter-input {
+    font-size: 16px;
+  }
+}
+
+/* ─── SOFT DISABLE (grayed but still interactive) ─── */
+.rsvp-row.softdisabled {
+  opacity: 0.35;
+  transition: opacity 0.3s ease;
+}
+
+/* ─── INLINE EMAIL (appears under name fields) ─── */
+.inline-email {
+  margin-top: 10px;
 }

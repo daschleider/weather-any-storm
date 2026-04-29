@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useLayoutEffect } from 'react';
 
 interface ConfirmationPageProps {
   isOpen: boolean;
@@ -11,7 +11,7 @@ export default function ConfirmationPage({ isOpen, type }: ConfirmationPageProps
   // Only update the displayed type when opening — never while closing
   const frozenType = useRef<'attending' | 'cant' | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (isOpen) frozenType.current = type;
   }, [isOpen, type]);
 

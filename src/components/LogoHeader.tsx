@@ -1,8 +1,9 @@
 interface LogoHeaderProps {
   onClick?: () => void;
+  darkMode?: boolean; // true = black logo (for white backgrounds like mobile art section)
 }
 
-export default function LogoHeader({ onClick }: LogoHeaderProps) {
+export default function LogoHeader({ onClick, darkMode = false }: LogoHeaderProps) {
   return (
     <header className="logo-header" aria-label="Site logo">
       <div
@@ -14,14 +15,11 @@ export default function LogoHeader({ onClick }: LogoHeaderProps) {
         onKeyDown={onClick ? (e) => e.key === 'Enter' && onClick() : undefined}
         aria-label={onClick ? 'Go to home' : undefined}
       >
-        {/* 
-          TO ADD YOUR LOGO:
-          1. Drop your logo file into /public/images/logo.png (or .svg, .jpg)
-          2. Replace the <span> below with:
-             <img src="/images/logo.png" alt="Your Logo" style={{ maxHeight: '44px', width: 'auto' }} />
-          The logo should ideally be white or transparent for best contrast.
-        */}
-        <span className="logo-text-fallback">Your Logo Here</span>
+        <img
+          src={darkMode ? '/images/logo-black.png' : '/images/logo-white.png'}
+          alt="Dominique Schleider"
+          style={{ maxHeight: '44px', width: 'auto' }}
+        />
       </div>
     </header>
   );

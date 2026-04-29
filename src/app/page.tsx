@@ -76,6 +76,7 @@ export default function Home() {
 
       <LogoHeader
         onClick={view !== 'intro' ? handleLogoClick : undefined}
+        darkMode={isMobile && isOnLanding}
       />
 
       {isMobile ? (
