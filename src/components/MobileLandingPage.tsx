@@ -5,6 +5,7 @@ import { useRef, useEffect, useState } from 'react';
 interface MobileLandingPageProps {
   isVisible: boolean;
   onRSVPClick: () => void;
+  onDarkSection?: (isDark: boolean) => void; // true = on black text section
 }
 
 const LAYERS = [
@@ -14,17 +15,17 @@ const LAYERS = [
   { src: '/images/layer-3.png', label: 'Dominique Schleider', delay: 0.9 },
 ];
 
-// Last layer finishes at delay 0.9s + transition 0.92s = ~1.82s
 const LAST_LAYER_DONE = 1900;
 
-export default function MobileLandingPage({ isVisible, onRSVPClick }: MobileLandingPageProps) {
+export default function MobileLandingPage({ isVisible, onRSVPClick, onDarkSection }: MobileLandingPageProps) {
   const btnRef = useRef<HTMLButtonElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const artSectionRef = useRef<HTMLElement>(null);
+  const textSectionRef = useRef<HTMLElement>(null);
   const animatedOnce = useRef(false);
   const [layersIn, setLayersIn] = useState(false);
   const [useDelays, setUseDelays] = useState(false);
-  const [nudge, setNudge] = useState(false); // triggers the peek animation
+  const [nudge, setNudge] = useState(false);
 
   useEffect(() => {
     if (!isVisible) return;
@@ -32,10 +33,8 @@ export default function MobileLandingPage({ isVisible, onRSVPClick }: MobileLand
       animatedOnce.current = true;
       setUseDelays(true);
       const t1 = setTimeout(() => setLayersIn(true), 150);
-      // After all layers land, do one gentle peek nudge
       const t2 = setTimeout(() => {
         setNudge(true);
-        // Reset nudge class after animation completes so it can't re-trigger
         setTimeout(() => setNudge(false), 1200);
       }, LAST_LAYER_DONE + 600);
       return () => { clearTimeout(t1); clearTimeout(t2); };
@@ -53,7 +52,32 @@ export default function MobileLandingPage({ isVisible, onRSVPClick }: MobileLand
     return () => window.removeEventListener('mobile-scroll-top', handler);
   }, []);
 
-  // Arrow click — scroll down to text section
+  // IntersectionObserver: watch text section — when it's >40% visible, go white logo
+  useEffect(() => {
+    const textEl = textSectionRef.current;
+    const scrollEl = scrollRef.current;
+    if (!textEl || !scrollEl || !onDarkSection) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // If text section is intersecting significantly, we're on the dark bg
+        onDarkSection(entry.intersectionRatio > 0.15);
+      },
+      {
+        root: scrollEl,
+        threshold: [0, 0.15, 0.5],
+      }
+    );
+
+    observer.observe(textEl);
+    return () => observer.disconnect();
+  }, [onDarkSection]);
+
+  // Reset to dark logo (black on white) when leaving the landing page
+  useEffect(() => {
+    if (!isVisible) onDarkSection?.(false);
+  }, [isVisible, onDarkSection]);
+
   const handleArrowClick = () => {
     const artH = artSectionRef.current?.offsetHeight ?? window.innerHeight;
     scrollRef.current?.scrollTo({ top: artH, behavior: 'smooth' });
@@ -80,7 +104,6 @@ export default function MobileLandingPage({ isVisible, onRSVPClick }: MobileLand
       className={`mobile-landing${isVisible ? '' : ' mobile-landing-hidden'}`}
       aria-hidden={!isVisible}
     >
-      {/* Full-screen artwork section */}
       <section
         ref={artSectionRef}
         className={`mobile-art-section${nudge ? ' nudge' : ''}`}
@@ -98,7 +121,6 @@ export default function MobileLandingPage({ isVisible, onRSVPClick }: MobileLand
           ))}
         </div>
 
-        {/* Clickable scroll hint arrow */}
         <button
           className={`scroll-hint${layersIn ? ' scroll-hint-visible' : ''}`}
           onClick={handleArrowClick}
@@ -110,28 +132,23 @@ export default function MobileLandingPage({ isVisible, onRSVPClick }: MobileLand
         </button>
       </section>
 
-      {/* Text + RSVP section */}
-      <section className="mobile-text-section">
+      <section ref={textSectionRef} className="mobile-text-section">
         <div className="mobile-text-inner">
           <h1 className="show-title helvetica-bold">
             Weather<br />Any<br />Storm
           </h1>
-
           <p className="show-subtitle helvetica-italic">
             Dominique Schleider<br />Senior Show
           </p>
-
           <div className="show-details helvetica-regular">
             May 31. Six PM.<br />
             Terman Fountain<br />
             Stanford University
           </div>
-
           <p className="show-thanks helvetica-regular">
             Thank you to the Stanford Arts Institute<br />
             x The Arbor
           </p>
-
           <button
             ref={btnRef}
             className="rsvp-btn"

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import RainAnimation from '@/components/RainAnimation';
 import LogoHeader from '@/components/LogoHeader';
 import LandingPage from '@/components/LandingPage';
@@ -15,6 +15,7 @@ export default function Home() {
   const [view, setView] = useState<AppView>('intro');
   const [rainIntensity, setRainIntensity] = useState<'ambient' | 'burst'>('ambient');
   const [isMobile, setIsMobile] = useState(false);
+  const [mobileOnDarkSection, setMobileOnDarkSection] = useState(false);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 768);
@@ -47,10 +48,8 @@ export default function Home() {
 
   const handleLogoClick = () => {
     if (view === 'landing' && isMobile) {
-      // On mobile landing: scroll to top to reveal the artwork
       window.dispatchEvent(new Event('mobile-scroll-top'));
     } else if (view !== 'landing' && view !== 'intro') {
-      // On RSVP or confirmation: go back to landing
       handleBack();
     }
   };
@@ -63,8 +62,15 @@ export default function Home() {
     }, 120);
   };
 
+  const handleDarkSection = useCallback((isDark: boolean) => {
+    setMobileOnDarkSection(isDark);
+  }, []);
+
   const isOnLanding = view === 'landing';
   const isOnConfirmation = view === 'confirmed-attending' || view === 'confirmed-cant';
+
+  // Logo is dark (black) only on mobile white art section
+  const logoDark = isMobile && isOnLanding && !mobileOnDarkSection;
 
   return (
     <div className="app-shell">
@@ -76,13 +82,14 @@ export default function Home() {
 
       <LogoHeader
         onClick={view !== 'intro' ? handleLogoClick : undefined}
-        darkMode={isMobile && isOnLanding}
+        darkMode={logoDark}
       />
 
       {isMobile ? (
         <MobileLandingPage
           isVisible={isOnLanding}
           onRSVPClick={handleRSVPClick}
+          onDarkSection={handleDarkSection}
         />
       ) : (
         <LandingPage
