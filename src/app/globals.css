@@ -100,7 +100,7 @@ html, body {
 }
 
 .logo-placeholder img {
-  max-height: 44px;
+  max-height: 88px;
   width: auto;
   object-fit: contain;
   filter: invert(0);
@@ -1113,44 +1113,4 @@ html, body {
   .field-input-email {
     font-size: 16px;
   }
-}
-
-/* ─── WEB-ONLY LOGO LAYER ────────────────────────────────────────────────
-   Image is 2667×2000px. Arrow line tip is at 91% of image width.
-   We size the image so 91% of its width = 50vw (the col boundary).
-   width = 50vw / 0.91 = 54.95vw ≈ 55vw
-   
-   Positioned absolutely within the layers-stack:
-   - left: 0 (left-aligned to column)
-   - The line center is at 54% of image height
-   - We want the line to point at the RSVP button
-   - RSVP button sits roughly 72% down the right column
-   - So we offset vertically: bottom align puts line too low, use top offset
-   - top = (72% of 100vh) - (54% of image_rendered_height)
-   - image rendered height = 55vw * (2000/2667) = 55vw * 0.75 = 41.25vw
-   - line y from top of img = 54% * 41.25vw = 22.28vw  
-   - target y = ~72vh
-   - top = 72vh - 22.28vw ≈ 72vh - 22vw
-   
-   This is approximate — the CSS var approach lets us tune easily.
-─────────────────────────────────────────────────────────────────────── */
-.web-logo-img {
-  /* Override the default inset:0 / width:100% / height:100% from .layer-img */
-  inset: auto !important;
-  width: 55vw !important;
-  height: auto !important;
-  object-fit: unset !important;
-  object-position: unset !important;
-  
-  /* Position: left edge at col left, vertically so line → RSVP button */
-  left: 0 !important;
-  top: calc(72vh - 22vw) !important;
-  
-  /* Sit on top of the other layers */
-  z-index: 2;
-}
-
-/* Also make the logo 2x bigger in the footer */
-.logo-placeholder img {
-  max-height: 88px !important;
 }

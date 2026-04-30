@@ -86,16 +86,6 @@ export default function LandingPage({ isVisible, onRSVPClick }: LandingPageProps
               />
             ))}
 
-            {/* Web-only logo — slides up with the DS layer, positioned so
-                the arrow line tip lands exactly at the white/black boundary */}
-            <img
-              src="/images/layer-web-logo.png"
-              alt=""
-              aria-hidden="true"
-              className={`layer-img web-logo-img${layersIn ? ' in' : ''}`}
-              style={{ transitionDelay: useDelays ? '0.9s' : '0s' }}
-              draggable={false}
-            />
           </div>
         </div>
       </div>
