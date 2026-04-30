@@ -117,7 +117,7 @@ export default function LandingPage({ isVisible, onRSVPClick, guest }: LandingPa
 
           {guest.firstName && (
             <p className="landing-greeting helvetica-regular">
-              Hi {guest.firstName}.
+              Hi {guest.firstName}. Would love to see you there.
             </p>
           )}
 

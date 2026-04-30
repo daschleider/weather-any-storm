@@ -154,7 +154,7 @@ export default function MobileLandingPage({ isVisible, onRSVPClick, onDarkSectio
           </p>
           {guest.firstName && (
             <p className="landing-greeting helvetica-regular">
-              Hi {guest.firstName}.
+              Hi {guest.firstName}. Would love to see you there.
             </p>
           )}
 

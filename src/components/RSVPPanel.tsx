@@ -164,13 +164,6 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit, guest }: RSVPPanel
 
         <h2 className="rsvp-header helvetica-bold">RSVP</h2>
 
-        {/* Personalized greeting */}
-        {hasGuest && (
-          <p className="rsvp-greeting helvetica-regular">
-            Hi {guest.firstName}. We'd love to see you there.
-          </p>
-        )}
-
         <div className="rsvp-divider" aria-hidden="true" />
 
         <div className="rsvp-form">
