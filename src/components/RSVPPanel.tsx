@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import NameFields from './NameFields';
+import { GuestInfo } from '@/app/page';
 
 interface RSVPPanelProps {
   isOpen: boolean;
   onBack: () => void;
   onSubmit: (status: 'attending' | 'cant_make_it') => void;
+  guest: GuestInfo;
 }
 
 interface Attendee {
@@ -15,20 +17,42 @@ interface Attendee {
   email: string;
 }
 
-const EMPTY_ATTENDEE: Attendee = { firstName: '', lastName: '', email: '' };
+export default function RSVPPanel({ isOpen, onBack, onSubmit, guest }: RSVPPanelProps) {
+  // Pre-fill with guest info: count=1, first attendee = guest
+  const makeFirstAttendee = (): Attendee => ({
+    firstName: guest.firstName,
+    lastName: guest.lastName,
+    email: guest.email,
+  });
 
-export default function RSVPPanel({ isOpen, onBack, onSubmit }: RSVPPanelProps) {
-  const [count, setCount] = useState(0);
-  const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const hasGuest = !!(guest.firstName || guest.lastName);
+
+  const [count, setCount] = useState(hasGuest ? 1 : 0);
+  const [attendees, setAttendees] = useState<Attendee[]>(
+    hasGuest ? [makeFirstAttendee()] : []
+  );
   const [cantMakeIt, setCantMakeIt] = useState(false);
-  const [declineName, setDeclineName] = useState<Attendee>(EMPTY_ATTENDEE);
+  const [declineName, setDeclineName] = useState<Attendee>({
+    firstName: guest.firstName,
+    lastName: guest.lastName,
+    email: guest.email,
+  });
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [nameErrors, setNameErrors] = useState<boolean[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Re-sync if guest info loads after mount
+  useEffect(() => {
+    if (guest.firstName || guest.lastName) {
+      setCount(1);
+      setAttendees([makeFirstAttendee()]);
+      setDeclineName({ firstName: guest.firstName, lastName: guest.lastName, email: guest.email });
+    }
+  }, [guest.firstName, guest.lastName, guest.email]);
+
   const increment = () => {
     setCount(c => c + 1);
-    setAttendees(prev => [...prev, { ...EMPTY_ATTENDEE }]);
+    setAttendees(prev => [...prev, { firstName: '', lastName: '', email: '' }]);
   };
 
   const decrement = () => {
@@ -43,6 +67,18 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit }: RSVPPanelProps) 
       setCount(0);
       setAttendees([]);
       setNameErrors([]);
+      // Pre-fill decline name with guest info
+      setDeclineName({
+        firstName: guest.firstName,
+        lastName: guest.lastName,
+        email: guest.email,
+      });
+    } else {
+      // Restore to 1 attendee pre-filled
+      if (hasGuest) {
+        setCount(1);
+        setAttendees([makeFirstAttendee()]);
+      }
     }
   };
 
@@ -63,21 +99,15 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit }: RSVPPanelProps) 
     let valid = true;
 
     if (!cantMakeIt) {
-      if (count < 1) {
-        errs.count = true;
-        valid = false;
-      } else {
+      if (count < 1) { errs.count = true; valid = false; }
+      else {
         attendees.forEach((a, i) => {
-          if (!a.firstName.trim() || !a.lastName.trim()) {
-            nErrs[i] = true;
-            valid = false;
-          }
+          if (!a.firstName.trim() || !a.lastName.trim()) { nErrs[i] = true; valid = false; }
         });
       }
     } else {
       if (!declineName.firstName.trim() || !declineName.lastName.trim()) {
-        errs.declineName = true;
-        valid = false;
+        errs.declineName = true; valid = false;
       }
     }
 
@@ -90,22 +120,15 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit }: RSVPPanelProps) 
     if (!validate()) return;
     setIsSubmitting(true);
 
-    // Build attendee data as structured pairs for the sheet
-    const attendeeData = cantMakeIt
-      ? []
-      : attendees.map((a, i) => ({
-          name: `${a.firstName} ${a.lastName}`,
-          email: a.email,
-        }));
+    const attendeeData = cantMakeIt ? [] : attendees.map(a => ({
+      name: `${a.firstName} ${a.lastName}`,
+      email: a.email,
+    }));
 
     const payload = {
       status: cantMakeIt ? 'cant_make_it' : 'attending',
       attendeeCount: cantMakeIt ? 0 : count,
-      // Readable string: "First Last (email), First Last (email)"
-      attendeeNames: attendeeData
-        .map(a => a.email ? `${a.name} (${a.email})` : a.name)
-        .join(', '),
-      // Individual columns for sheet: attendee1Name, attendee1Email, attendee2Name, etc.
+      attendeeNames: attendeeData.map(a => a.email ? `${a.name} (${a.email})` : a.name).join(', '),
       attendees: attendeeData,
       declineFirstName: cantMakeIt ? declineName.firstName : '',
       declineLastName: cantMakeIt ? declineName.lastName : '',
@@ -118,9 +141,7 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit }: RSVPPanelProps) 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-    } catch {
-      console.error('Failed to save RSVP.');
-    }
+    } catch { console.error('Failed to save RSVP.'); }
 
     setIsSubmitting(false);
     onSubmit(cantMakeIt ? 'cant_make_it' : 'attending');
@@ -142,6 +163,14 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit }: RSVPPanelProps) 
         </button>
 
         <h2 className="rsvp-header helvetica-bold">RSVP</h2>
+
+        {/* Personalized greeting */}
+        {hasGuest && (
+          <p className="rsvp-greeting helvetica-regular">
+            Hi {guest.firstName}. We'd love to see you there.
+          </p>
+        )}
+
         <div className="rsvp-divider" aria-hidden="true" />
 
         <div className="rsvp-form">
@@ -177,7 +206,7 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit }: RSVPPanelProps) 
             </div>
           </div>
 
-          {/* Row 2: Can't Make It — softdisabled when attending active */}
+          {/* Row 2: Can't Make It */}
           <div className={`rsvp-row${attendingActive ? ' softdisabled' : ''}`}>
             <span className="rsvp-row-label helvetica-regular">Can't Make It</span>
             <div className="rsvp-row-control">

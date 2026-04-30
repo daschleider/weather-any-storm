@@ -911,7 +911,7 @@ html, body {
   }
 
   .logo-placeholder img {
-    max-height: 132px !important;
+    max-height: 66px !important;
     max-width: calc(100vw - 48px);
   }
 
@@ -1118,4 +1118,22 @@ html, body {
   .field-input-email {
     font-size: 16px;
   }
+}
+
+/* ─── PERSONALIZED GREETING ─── */
+.landing-greeting {
+  font-size: clamp(11px, 1vw, 13px);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gray-300);
+  margin-bottom: 16px;
+}
+
+.rsvp-greeting {
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  margin-bottom: 20px;
+  margin-top: -8px;
 }

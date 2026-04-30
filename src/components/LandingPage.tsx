@@ -2,9 +2,12 @@
 
 import { useRef, useEffect, useState } from 'react';
 
+import { GuestInfo } from '@/app/page';
+
 interface LandingPageProps {
   isVisible: boolean;
   onRSVPClick: () => void;
+  guest: GuestInfo;
 }
 
 /*
@@ -29,7 +32,7 @@ const LAYERS = [
   { src: '/images/layer-3.png', label: 'Dominique Schleider', delay: 0.9 },
 ];
 
-export default function LandingPage({ isVisible, onRSVPClick }: LandingPageProps) {
+export default function LandingPage({ isVisible, onRSVPClick, guest }: LandingPageProps) {
   const btnRef = useRef<HTMLButtonElement>(null);
   const animatedOnce = useRef(false);
   const [layersIn, setLayersIn] = useState(false);
@@ -111,6 +114,12 @@ export default function LandingPage({ isVisible, onRSVPClick }: LandingPageProps
             Thank you to the Stanford Arts Institute<br />
             x The Arbor
           </p>
+
+          {guest.firstName && (
+            <p className="landing-greeting helvetica-regular">
+              Hi {guest.firstName}.
+            </p>
+          )}
 
           <button
             ref={btnRef}

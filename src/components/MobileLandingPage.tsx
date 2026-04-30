@@ -2,10 +2,13 @@
 
 import { useRef, useEffect, useState } from 'react';
 
+import { GuestInfo } from '@/app/page';
+
 interface MobileLandingPageProps {
   isVisible: boolean;
   onRSVPClick: () => void;
-  onDarkSection?: (isDark: boolean) => void; // true = on black text section
+  onDarkSection?: (isDark: boolean) => void;
+  guest: GuestInfo;
 }
 
 const LAYERS = [
@@ -17,7 +20,7 @@ const LAYERS = [
 
 const LAST_LAYER_DONE = 1900;
 
-export default function MobileLandingPage({ isVisible, onRSVPClick, onDarkSection }: MobileLandingPageProps) {
+export default function MobileLandingPage({ isVisible, onRSVPClick, onDarkSection, guest }: MobileLandingPageProps) {
   const btnRef = useRef<HTMLButtonElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const artSectionRef = useRef<HTMLElement>(null);
@@ -149,6 +152,12 @@ export default function MobileLandingPage({ isVisible, onRSVPClick, onDarkSectio
             Thank you to the Stanford Arts Institute<br />
             x The Arbor
           </p>
+          {guest.firstName && (
+            <p className="landing-greeting helvetica-regular">
+              Hi {guest.firstName}.
+            </p>
+          )}
+
           <button
             ref={btnRef}
             className="rsvp-btn"

@@ -5,9 +5,10 @@ import { useRef, useEffect, useLayoutEffect } from 'react';
 interface ConfirmationPageProps {
   isOpen: boolean;
   type: 'attending' | 'cant';
+  guestName?: string;
 }
 
-export default function ConfirmationPage({ isOpen, type }: ConfirmationPageProps) {
+export default function ConfirmationPage({ isOpen, type, guestName }: ConfirmationPageProps) {
   // Only update the displayed type when opening — never while closing
   const frozenType = useRef<'attending' | 'cant' | null>(null);
 
@@ -21,8 +22,8 @@ export default function ConfirmationPage({ isOpen, type }: ConfirmationPageProps
 
   const word = displayType === 'attending' ? 'See You There' : 'Raincheck.';
   const sub = displayType === 'attending'
-    ? 'May 31 · Six PM · Terman Fountain'
-    : "We'll miss you — thank you for letting us know.";
+    ? `May 31 · Six PM · Terman Fountain`
+    : `We'll miss you${guestName ? `, ${guestName}` : ''} — thank you for letting us know.`;
 
   return (
     <div

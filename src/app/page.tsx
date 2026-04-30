@@ -11,17 +11,43 @@ import IntroSplash from '@/components/IntroSplash';
 
 export type AppView = 'intro' | 'landing' | 'rsvp' | 'confirmed-attending' | 'confirmed-cant';
 
+export interface GuestInfo {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
+function parseGuestFromURL(): GuestInfo {
+  if (typeof window === 'undefined') return { firstName: '', lastName: '', email: '' };
+  const p = new URLSearchParams(window.location.search);
+
+  // ?guest=yasmin-schleider → first=Yasmin, last=Schleider
+  const guest = p.get('guest') || '';
+  if (!guest) return { firstName: '', lastName: '', email: '' };
+
+  const parts = guest.split('-');
+  const firstName = parts[0] ? parts[0].charAt(0).toUpperCase() + parts[0].slice(1) : '';
+  const lastName = parts.slice(1).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+  return { firstName, lastName, email: '' };
+}
+
 export default function Home() {
   const [view, setView] = useState<AppView>('intro');
   const [rainIntensity, setRainIntensity] = useState<'ambient' | 'burst'>('ambient');
   const [isMobile, setIsMobile] = useState(false);
   const [mobileOnDarkSection, setMobileOnDarkSection] = useState(false);
+  const [guest, setGuest] = useState<GuestInfo>({ firstName: '', lastName: '', email: '' });
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 768);
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
+  }, []);
+
+  useEffect(() => {
+    setGuest(parseGuestFromURL());
   }, []);
 
   const handleIntroComplete = () => {
@@ -68,9 +94,8 @@ export default function Home() {
 
   const isOnLanding = view === 'landing';
   const isOnConfirmation = view === 'confirmed-attending' || view === 'confirmed-cant';
-
-  // Logo is dark (black) only on mobile white art section
   const logoDark = isMobile && isOnLanding && !mobileOnDarkSection;
+  const hasGuest = !!(guest.firstName || guest.lastName);
 
   return (
     <div className="app-shell">
@@ -90,11 +115,13 @@ export default function Home() {
           isVisible={isOnLanding}
           onRSVPClick={handleRSVPClick}
           onDarkSection={handleDarkSection}
+          guest={guest}
         />
       ) : (
         <LandingPage
           isVisible={isOnLanding}
           onRSVPClick={handleRSVPClick}
+          guest={guest}
         />
       )}
 
@@ -102,11 +129,13 @@ export default function Home() {
         isOpen={view === 'rsvp'}
         onBack={handleBack}
         onSubmit={handleSubmit}
+        guest={guest}
       />
 
       <ConfirmationPage
         isOpen={isOnConfirmation}
         type={view === 'confirmed-attending' ? 'attending' : 'cant'}
+        guestName={guest.firstName}
       />
     </div>
   );
