@@ -11,7 +11,7 @@ interface ConfirmationPageProps {
 const FAQ = [
   {
     q: 'Is there a dress code?',
-    a: 'No. Come as you are.',
+    a: 'No.',
   },
   {
     q: 'What is the timing?',

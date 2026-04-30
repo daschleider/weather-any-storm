@@ -93,6 +93,9 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit, guest }: RSVPPanel
     []
   );
 
+  const isValidEmail = (email: string) =>
+    !!email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
   const validate = (): boolean => {
     const errs: Record<string, boolean> = {};
     const nErrs: boolean[] = [];
@@ -102,12 +105,17 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit, guest }: RSVPPanel
       if (count < 1) { errs.count = true; valid = false; }
       else {
         attendees.forEach((a, i) => {
-          if (!a.firstName.trim() || !a.lastName.trim()) { nErrs[i] = true; valid = false; }
+          const nameMissing = !a.firstName.trim() || !a.lastName.trim();
+          const emailInvalid = a.email && !isValidEmail(a.email);
+          if (nameMissing || emailInvalid) { nErrs[i] = true; valid = false; }
         });
       }
     } else {
       if (!declineName.firstName.trim() || !declineName.lastName.trim()) {
         errs.declineName = true; valid = false;
+      }
+      if (!isValidEmail(declineName.email)) {
+        errs.declineEmail = true; valid = false;
       }
     }
 
@@ -192,7 +200,7 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit, guest }: RSVPPanel
                     showEmail={true}
                   />
                   {nameErrors.some(Boolean) && (
-                    <p className="error-msg">Please fill in all name fields.</p>
+                    <p className="error-msg">Please enter a valid email address.</p>
                   )}
                 </>
               )}
@@ -228,6 +236,9 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit, guest }: RSVPPanel
                   />
                   {errors.declineName && (
                     <p className="error-msg">Please enter your name.</p>
+                  )}
+                  {errors.declineEmail && (
+                    <p className="error-msg">Please enter a valid email address.</p>
                   )}
                 </>
               )}
