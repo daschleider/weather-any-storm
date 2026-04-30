@@ -7,6 +7,21 @@ interface LandingPageProps {
   onRSVPClick: () => void;
 }
 
+/*
+  4 artwork layers (WEATHER, ANY, STORM, DS name) slide up staggered.
+  5th layer: web-only logo PNG — slides up WITH the DS layer (same delay 0.9s).
+  
+  Web logo geometry:
+    - Image is 2667×2000px
+    - The horizontal arrow line tip is at 91% of image width
+    - We size the image so that 91% of its width = exactly 50vw (the column boundary)
+    - image width = 50vw / 0.91 ≈ 54.95vw
+    - Positioned absolutely, left-aligned, bottom-aligned to column
+    - Line vertical center is at 54% of image height
+    - The RSVP button is roughly in the vertical middle of the right column
+    - We position the logo so the line points right at it
+*/
+
 const LAYERS = [
   { src: '/images/layer-0.png', label: 'Weather',             delay: 0   },
   { src: '/images/layer-1.png', label: 'Any',                 delay: 0.3 },
@@ -16,21 +31,18 @@ const LAYERS = [
 
 export default function LandingPage({ isVisible, onRSVPClick }: LandingPageProps) {
   const btnRef = useRef<HTMLButtonElement>(null);
-  const animatedOnce = useRef(false); // persists across renders without causing re-renders
+  const animatedOnce = useRef(false);
   const [layersIn, setLayersIn] = useState(false);
   const [useDelays, setUseDelays] = useState(false);
 
   useEffect(() => {
     if (!isVisible) return;
-
     if (!animatedOnce.current) {
-      // First time: animate with staggered delays
       animatedOnce.current = true;
       setUseDelays(true);
       const t = setTimeout(() => setLayersIn(true), 150);
       return () => clearTimeout(t);
     } else {
-      // Returning via Back — snap in instantly, no stagger
       setUseDelays(false);
       setLayersIn(true);
     }
@@ -54,6 +66,7 @@ export default function LandingPage({ isVisible, onRSVPClick }: LandingPageProps
   return (
     <main className={`landing-page${isVisible ? '' : ' slide-out'}`} aria-hidden={!isVisible}>
 
+      {/* LEFT: Animated word layers + web logo on white */}
       <div className="welcome-image-col">
         <div
           className="welcome-image-wrapper layers-white-bg"
@@ -61,22 +74,33 @@ export default function LandingPage({ isVisible, onRSVPClick }: LandingPageProps
           aria-label="Weather Any Storm — Dominique Schleider"
         >
           <div className="layers-stack">
+            {/* Word art layers */}
             {LAYERS.map((layer) => (
               <img
                 key={layer.src}
                 src={layer.src}
                 alt={layer.label}
                 className={`layer-img${layersIn ? ' in' : ''}`}
-                style={{
-                  transitionDelay: useDelays ? `${layer.delay}s` : '0s',
-                }}
+                style={{ transitionDelay: useDelays ? `${layer.delay}s` : '0s' }}
                 draggable={false}
               />
             ))}
+
+            {/* Web-only logo — slides up with the DS layer, positioned so
+                the arrow line tip lands exactly at the white/black boundary */}
+            <img
+              src="/images/layer-web-logo.png"
+              alt=""
+              aria-hidden="true"
+              className={`layer-img web-logo-img${layersIn ? ' in' : ''}`}
+              style={{ transitionDelay: useDelays ? '0.9s' : '0s' }}
+              draggable={false}
+            />
           </div>
         </div>
       </div>
 
+      {/* RIGHT: Text */}
       <div className="text-col">
         <div className="text-col-inner">
           <h1 className="show-title helvetica-bold">
