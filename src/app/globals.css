@@ -911,7 +911,8 @@ html, body {
   }
 
   .logo-placeholder img {
-    max-height: 176px !important;
+    max-height: 132px !important;
+    max-width: calc(100vw - 48px);
   }
 
   /* On mobile show black logo (over white art), hide white */
