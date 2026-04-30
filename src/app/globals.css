@@ -910,6 +910,10 @@ html, body {
     justify-content: flex-start;
   }
 
+  .logo-placeholder img {
+    max-height: 176px !important;
+  }
+
   /* On mobile show black logo (over white art), hide white */
   .logo-white { display: none !important; }
   .logo-black { display: block !important; }
