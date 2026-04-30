@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect } from 'react';
 
 interface ConfirmationPageProps {
   isOpen: boolean;
@@ -8,37 +8,19 @@ interface ConfirmationPageProps {
   guestName?: string;
 }
 
-const FAQ = [
-  {
-    q: 'Is there a dress code?',
-    a: 'No.',
-  },
-  {
-    q: 'What is the timing?',
-    a: 'Short and sweet. Please be there at six if you want to catch the show.',
-  },
-];
-
 export default function ConfirmationPage({ isOpen, type, guestName }: ConfirmationPageProps) {
   const frozenType = useRef<'attending' | 'cant' | null>(null);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [faqOpen, setFaqOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) frozenType.current = type;
   }, [isOpen, type]);
-
-  // Reset FAQ when page closes
-  useEffect(() => {
-    if (!isOpen) { setFaqOpen(false); setOpenFaq(null); }
-  }, [isOpen]);
 
   const displayType = frozenType.current;
   if (!displayType) return null;
 
   const word = displayType === 'attending' ? 'See You There' : 'Raincheck.';
   const sub = displayType === 'attending'
-    ? 'May 31 · Six PM · Terman Fountain'
+    ? 'May 31. Terman Fountain. Please arrive at six PM if you want to catch the show.'
     : `We'll miss you${guestName ? `, ${guestName}` : ''} — thank you for letting us know.`;
 
   return (
@@ -64,50 +46,8 @@ export default function ConfirmationPage({ isOpen, type, guestName }: Confirmati
         ))}
       </div>
 
-      <div className="confirmation-content">
-        <p className="confirmation-word helvetica-bold">{word}</p>
-        <p className="confirmation-sub">{sub}</p>
-
-        {/* FAQ — only on attending confirmation */}
-        {displayType === 'attending' && (
-          <div className={`faq-section${isOpen ? ' faq-visible' : ''}`}>
-            <button
-              className="faq-toggle"
-              onClick={() => setFaqOpen(o => !o)}
-              aria-expanded={faqOpen}
-            >
-              <span className="helvetica-regular">FAQ</span>
-              <span className={`faq-chevron${faqOpen ? ' open' : ''}`} aria-hidden="true">
-                <svg width="14" height="9" viewBox="0 0 14 9" fill="none">
-                  <path d="M1 1L7 7L13 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </span>
-            </button>
-
-            <div className={`faq-body${faqOpen ? ' open' : ''}`}>
-              {FAQ.map((item, i) => (
-                <div key={i} className="faq-item">
-                  <button
-                    className="faq-q helvetica-regular"
-                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    aria-expanded={openFaq === i}
-                  >
-                    <span>{item.q}</span>
-                    <span className={`faq-chevron small${openFaq === i ? ' open' : ''}`} aria-hidden="true">
-                      <svg width="10" height="7" viewBox="0 0 10 7" fill="none">
-                        <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </span>
-                  </button>
-                  <div className={`faq-a helvetica-regular${openFaq === i ? ' open' : ''}`}>
-                    {item.a}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      <p className="confirmation-word helvetica-bold">{word}</p>
+      <p className="confirmation-sub">{sub}</p>
     </div>
   );
 }

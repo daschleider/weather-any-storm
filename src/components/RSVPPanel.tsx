@@ -106,8 +106,8 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit, guest }: RSVPPanel
       else {
         attendees.forEach((a, i) => {
           const nameMissing = !a.firstName.trim() || !a.lastName.trim();
-          const emailInvalid = a.email && !isValidEmail(a.email);
-          if (nameMissing || emailInvalid) { nErrs[i] = true; valid = false; }
+          const emailMissing = !isValidEmail(a.email); // email always required
+          if (nameMissing || emailMissing) { nErrs[i] = true; valid = false; }
         });
       }
     } else {
