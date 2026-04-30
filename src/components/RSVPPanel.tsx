@@ -12,31 +12,29 @@ interface RSVPPanelProps {
 interface Attendee {
   firstName: string;
   lastName: string;
+  email: string;
 }
 
-const EMPTY_ATTENDEE: Attendee = { firstName: '', lastName: '' };
+const EMPTY_ATTENDEE: Attendee = { firstName: '', lastName: '', email: '' };
 
 export default function RSVPPanel({ isOpen, onBack, onSubmit }: RSVPPanelProps) {
   const [count, setCount] = useState(0);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [cantMakeIt, setCantMakeIt] = useState(false);
   const [declineName, setDeclineName] = useState<Attendee>(EMPTY_ATTENDEE);
-  const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<Record<string, boolean>>({});
   const [nameErrors, setNameErrors] = useState<boolean[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const increment = () => {
-    const next = count + 1;
-    setCount(next);
+    setCount(c => c + 1);
     setAttendees(prev => [...prev, { ...EMPTY_ATTENDEE }]);
   };
 
   const decrement = () => {
     if (count <= 0) return;
-    const next = count - 1;
-    setCount(next);
-    setAttendees(prev => prev.slice(0, next));
+    setCount(c => c - 1);
+    setAttendees(prev => prev.slice(0, -1));
   };
 
   const handleCantMakeIt = (checked: boolean) => {
@@ -49,7 +47,7 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit }: RSVPPanelProps) 
   };
 
   const updateAttendee = useCallback(
-    (index: number, field: 'firstName' | 'lastName', value: string) => {
+    (index: number, field: 'firstName' | 'lastName' | 'email', value: string) => {
       setAttendees(prev => {
         const copy = [...prev];
         copy[index] = { ...copy[index], [field]: value };
@@ -63,11 +61,6 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit }: RSVPPanelProps) 
     const errs: Record<string, boolean> = {};
     const nErrs: boolean[] = [];
     let valid = true;
-
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errs.email = true;
-      valid = false;
-    }
 
     if (!cantMakeIt) {
       if (count < 1) {
@@ -97,15 +90,26 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit }: RSVPPanelProps) 
     if (!validate()) return;
     setIsSubmitting(true);
 
+    // Build attendee data as structured pairs for the sheet
+    const attendeeData = cantMakeIt
+      ? []
+      : attendees.map((a, i) => ({
+          name: `${a.firstName} ${a.lastName}`,
+          email: a.email,
+        }));
+
     const payload = {
-      email,
       status: cantMakeIt ? 'cant_make_it' : 'attending',
       attendeeCount: cantMakeIt ? 0 : count,
-      attendeeNames: cantMakeIt
-        ? ''
-        : attendees.map(a => `${a.firstName} ${a.lastName}`).join(', '),
+      // Readable string: "First Last (email), First Last (email)"
+      attendeeNames: attendeeData
+        .map(a => a.email ? `${a.name} (${a.email})` : a.name)
+        .join(', '),
+      // Individual columns for sheet: attendee1Name, attendee1Email, attendee2Name, etc.
+      attendees: attendeeData,
       declineFirstName: cantMakeIt ? declineName.firstName : '',
       declineLastName: cantMakeIt ? declineName.lastName : '',
+      declineEmail: cantMakeIt ? declineName.email : '',
     };
 
     try {
@@ -122,16 +126,12 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit }: RSVPPanelProps) 
     onSubmit(cantMakeIt ? 'cant_make_it' : 'attending');
   };
 
-  // Gray out "can't make it" row when attending > 0
   const attendingActive = count > 0 && !cantMakeIt;
-  // Gray out attending row when can't make it is checked
-  const cantMakeItDisabled = cantMakeIt === false && count > 0 ? false : cantMakeIt;
 
   return (
     <div className={`rsvp-panel${isOpen ? ' open' : ''}`} role="dialog" aria-modal="true" aria-label="RSVP Form">
       <div className="rsvp-panel-inner">
 
-        {/* Back */}
         <button className="back-btn" onClick={onBack} aria-label="Go back">
           <span className="back-arrow">
             <svg width="12" height="14" viewBox="0 0 12 14" fill="none" aria-hidden="true">
@@ -151,32 +151,15 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit }: RSVPPanelProps) 
             <span className="rsvp-row-label helvetica-regular">Attending</span>
             <div className="rsvp-row-control">
               <div className="counter" role="group" aria-label="Number of attendees">
-                <button
-                  className="counter-btn"
-                  onClick={decrement}
-                  disabled={count <= 0 || cantMakeIt}
-                  aria-label="Decrease attendees"
-                >−</button>
-                <input
-                  className="counter-input"
-                  type="number"
-                  value={count}
-                  readOnly
-                  aria-label="Attendee count"
-                />
-                <button
-                  className="counter-btn"
-                  onClick={increment}
-                  disabled={cantMakeIt}
-                  aria-label="Increase attendees"
-                >+</button>
+                <button className="counter-btn" onClick={decrement} disabled={count <= 0 || cantMakeIt} aria-label="Decrease">−</button>
+                <input className="counter-input" type="number" value={count} readOnly aria-label="Attendee count" />
+                <button className="counter-btn" onClick={increment} disabled={cantMakeIt} aria-label="Increase">+</button>
               </div>
 
               {errors.count && !cantMakeIt && (
                 <p className="error-msg">Please add at least one attendee.</p>
               )}
 
-              {/* Name fields + email shown under attending when count > 0 */}
               {attendees.length > 0 && !cantMakeIt && (
                 <>
                   <NameFields
@@ -184,30 +167,17 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit }: RSVPPanelProps) 
                     onChange={updateAttendee}
                     errors={nameErrors}
                     showIndex={attendees.length > 1}
+                    showEmail={true}
                   />
                   {nameErrors.some(Boolean) && (
                     <p className="error-msg">Please fill in all name fields.</p>
                   )}
-                  <div className="inline-email">
-                    <input
-                      className={`email-input${errors.email ? ' error' : ''}`}
-                      type="email"
-                      placeholder="Email Address"
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      autoComplete="email"
-                      aria-label="Email address"
-                    />
-                    {errors.email && (
-                      <p className="error-msg">A valid email address is required.</p>
-                    )}
-                  </div>
                 </>
               )}
             </div>
           </div>
 
-          {/* Row 2: Can't Make It — grayed out when attending > 0 */}
+          {/* Row 2: Can't Make It — softdisabled when attending active */}
           <div className={`rsvp-row${attendingActive ? ' softdisabled' : ''}`}>
             <span className="rsvp-row-label helvetica-regular">Can't Make It</span>
             <div className="rsvp-row-control">
@@ -223,7 +193,6 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit }: RSVPPanelProps) 
                 </label>
               </div>
 
-              {/* Name fields + email shown under can't make it when checked */}
               {cantMakeIt && (
                 <>
                   <NameFields
@@ -233,24 +202,11 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit }: RSVPPanelProps) 
                     }
                     errors={errors.declineName ? [true] : []}
                     showIndex={false}
+                    showEmail={true}
                   />
                   {errors.declineName && (
                     <p className="error-msg">Please enter your name.</p>
                   )}
-                  <div className="inline-email">
-                    <input
-                      className={`email-input${errors.email ? ' error' : ''}`}
-                      type="email"
-                      placeholder="Email Address"
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      autoComplete="email"
-                      aria-label="Email address"
-                    />
-                    {errors.email && (
-                      <p className="error-msg">A valid email address is required.</p>
-                    )}
-                  </div>
                 </>
               )}
             </div>
@@ -258,12 +214,7 @@ export default function RSVPPanel({ isOpen, onBack, onSubmit }: RSVPPanelProps) 
 
           {/* Submit */}
           <div className="continue-section">
-            <button
-              className="continue-btn"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              aria-busy={isSubmitting}
-            >
+            <button className="continue-btn" onClick={handleSubmit} disabled={isSubmitting} aria-busy={isSubmitting}>
               <span>{isSubmitting ? 'Sending…' : 'Continue'}</span>
               <span aria-hidden="true">→</span>
             </button>

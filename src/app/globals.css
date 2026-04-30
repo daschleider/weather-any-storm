@@ -1086,3 +1086,31 @@ html, body {
 .inline-email {
   margin-top: 10px;
 }
+
+/* ─── PER-ATTENDEE EMAIL FIELD ─── */
+.name-row-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+/* Email field spans full width under the name row */
+.field-input-email {
+  width: 100%;
+  grid-column: 1 / -1;
+}
+
+/* Match email placeholder color exactly to first/last name placeholders */
+.field-input-email::placeholder {
+  color: var(--gray-300);
+  letter-spacing: 0.15em;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+  .field-input-email {
+    font-size: 16px;
+  }
+}
